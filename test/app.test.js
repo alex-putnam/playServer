@@ -1,6 +1,6 @@
-const { expect } = require('chai');
 const supertest = require('supertest');
 const app = require('../app');
+const { expect } = require('chai');
 
 describe('GET /apps', () => {
   it('should return an array of apps', () => {
@@ -11,32 +11,58 @@ describe('GET /apps', () => {
       .then((res) => {
         expect(res.body).to.be.an('array');
         expect(res.body).to.have.lengthOf.at.least(1);
-        const game = res.body[0];
-        expect(game).to.include.all.keys('App', 'Genres', 'Rating');
+        const appThing = res.body[0];
+        expect(appThing).to.include.all.keys(
+          'Android Ver',
+          'App',
+          'Category',
+          'Content Rating',
+          'Current Ver',
+          'Genres',
+          'Installs',
+          'Last Updated',
+          'Price',
+          'Rating',
+          'Reviews',
+          'Size',
+          'Type'
+        );
       });
   });
 
-  it('should return 400 if sort is incorrect', () => {
+  it('should be 400 if sort is incorrect', () => {
     return supertest(app)
       .get('/apps')
-      .query({ sort: 'Price' })
-      .expect(400, 'Sort must be of genre or app title.');
+      .query({ sort: 'MISTAKE' })
+      .expect(400, 'Sort must be Rating or App');
   });
 
-  it('should sort by "App" title', () => {
+  it('should be 400 if genre is incorrect', () => {
     return supertest(app)
       .get('/apps')
-      .query({ sort: 'App' })
+      .query({ genre: 'MISTAKE' })
+      .expect(
+        400,
+        'Genre must be Action, Puzzle, Strategy, Casual, Arcade, Card'
+      );
+  });
+
+  it('should sort by rating', () => {
+    return supertest(app)
+      .get('/apps')
+      .query({ sort: 'Rating' })
       .expect(200)
+      .expect('Content-Type', /json/)
       .then((res) => {
         expect(res.body).to.be.an('array');
         let sorted = true;
 
         let i = 0;
         while (i < res.body.length - 1) {
-          const gameAtI = res.body[i];
-          const gameAtIPlus1 = res.body[i + 1];
-          if (gameAtIPlus1.App < gameAtI.title) {
+          const appAtI = res.body[i];
+          const bookAtIPlus1 = res.body[i + 1];
+
+          if (bookAtIPlus1.title < bookAtIPlus1.title) {
             sorted = false;
             break;
           }

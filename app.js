@@ -1,25 +1,25 @@
 const express = require('express');
 const morgan = require('morgan');
 
+const playApps = require('./playstore.js');
+
 const app = express();
 
-app.use(morgan('common'));
-
-const games = require('./playstore.js');
+app.use(morgan('common')); // let's see what 'common' format looks like
 
 app.get('/apps', (req, res) => {
-  const { search = '', sort, genres } = req.query;
+  const { search = '', sort, genre = '' } = req.query;
 
   if (sort) {
     if (!['Rating', 'App'].includes(sort)) {
-      return res.status(400).send('Sort must be of genre or app title.');
+      return res.status(400).send('Sort must be Rating or App');
     }
   }
 
-  if (genres) {
+  if (genre) {
     if (
       !['Action', 'Puzzle', 'Strategy', 'Casual', 'Arcade', 'Card'].includes(
-        genres
+        genre
       )
     ) {
       return res
@@ -28,24 +28,16 @@ app.get('/apps', (req, res) => {
     }
   }
 
-  let results = games.filter((game) =>
-    game.App.toLowerCase().includes(search.toLowerCase())
+  let results = playApps.filter(
+    (playApp) =>
+      playApp.App.toLowerCase().includes(search.toLowerCase()) &&
+      playApp.Genres.toLowerCase().includes(genre.toLowerCase())
   );
 
   if (sort) {
     results.sort((a, b) => {
       return a[sort] > b[sort] ? 1 : a[sort] < b[sort] ? -1 : 0;
     });
-  }
-
-  if (genres) {
-    results.sort((a, b) => {
-      return a[sort] > b[sort] ? 1 : a[sort] < b[sort] ? -1 : 0;
-    });
-  }
-
-  if (genres) {
-    results = results.filter((game) => game.Genres.includes(genres));
   }
 
   res.json(results);
